@@ -9,13 +9,31 @@
   },
   "customizations": {
     "vscode": {
+      "settings": {
+        "dotnet.defaultSolution": "myproject/TeacherAppointment.sln"
+      },
       "extensions": [
         "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
         "GitHub.copilot-chat",
         "atman-dev.openspec-for-copilot"
       ]
     }
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev && sudo npm install -g @fission-ai/openspec && bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh",
+  "forwardPorts": [
+    5000,
+    5001
+  ],
+  "portsAttributes": {
+    "5000": {
+      "label": "TeacherAppointment API (HTTP)",
+      "onAutoForward": "notify"
+    },
+    "5001": {
+      "label": "TeacherAppointment API (HTTPS)",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev && sudo npm install -g @fission-ai/openspec && dotnet restore ./myproject/TeacherAppointment.sln && dotnet build ./myproject/TeacherAppointment.sln && bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh",
   "postAttachCommand": "bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh"
 }
