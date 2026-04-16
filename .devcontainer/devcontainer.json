@@ -10,9 +10,10 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-dotnettools.csharp"
+        "ms-dotnettools.csharp",
+        "GitHub.copilot-chat"
       ]
     }
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev && sudo npm install -g @fission-ai/openspec && npm install"
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev && sudo npm install -g @fission-ai/openspec && sudo ln -sf $(command -v openspec) /usr/local/bin/opsx && npm install"
 }
