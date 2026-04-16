@@ -1,0 +1,12 @@
+{
+  "name": "mynode",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node hello.js",
+    "openspec": "openspec"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.3.0"
+  }
+}

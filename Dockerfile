@@ -1,7 +1,11 @@
-FROM node:8.16.1
+FROM node:22-bookworm-slim
 
-RUN mkdir /src
+WORKDIR /app
 
-COPY hello.js /src
+COPY package.json package-lock.json ./
 
-CMD ["node","/src/hello.js"]
+RUN npm ci
+
+COPY hello.js ./
+
+CMD ["npm", "start"]
