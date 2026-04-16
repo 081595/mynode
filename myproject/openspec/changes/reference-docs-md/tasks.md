@@ -21,10 +21,10 @@
 
 ## 4. Appointment Response Workflow
 
-- [ ] 4.1 Implement teacher-scoped appointment retrieval by `(yr, empl_no)` and admin-scoped filtered retrieval.
-- [ ] 4.2 Implement appointment PDF delivery endpoint with role-specific counter behavior (teacher increments, admin does not).
-- [ ] 4.3 Implement response completion endpoint that updates `resp_status` only after verified authentication context.
-- [ ] 4.4 Ensure response-side state updates include timestamps and preserve data consistency under concurrent requests.
+- [x] 4.1 Implement teacher-scoped appointment retrieval by `(yr, empl_no)` and admin-scoped filtered retrieval.
+- [x] 4.2 Implement appointment PDF delivery endpoint with role-specific counter behavior (teacher increments, admin does not).
+- [x] 4.3 Implement response completion endpoint that updates `resp_status` only after verified authentication context.
+- [x] 4.4 Ensure response-side state updates include timestamps and preserve data consistency under concurrent requests.
 
 ## 5. Admin Maintenance and Governance
 

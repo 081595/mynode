@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthChallengeRepository, SqliteAuthChallengeRepository>();
         services.AddScoped<IAuditLogRepository, SqliteAuditLogRepository>();
         services.AddScoped<IRefreshTokenRepository, SqliteRefreshTokenRepository>();
+        services.AddScoped<IAppointmentResponseRepository, SqliteAppointmentResponseRepository>();
 
         return services;
     }
