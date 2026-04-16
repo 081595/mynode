@@ -154,6 +154,7 @@ packages/
 appsettings.Local.json
 appsettings.*.local.json
 **/Properties/launchSettings.json
+myproject/src/TeacherAppointment.Api/data/*.db
 
 # Coverage and profiling
 *.coverage

@@ -2,7 +2,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.IdentityModel.Tokens;
+using TeacherAppointment.Api.Middleware;
 using TeacherAppointment.Api.Security;
+using TeacherAppointment.Application.Abstractions.Security;
 using TeacherAppointment.Application;
 using TeacherAppointment.Infrastructure;
 using TeacherAppointment.Infrastructure.Realtime;
@@ -10,8 +12,9 @@ using TeacherAppointment.Infrastructure.Realtime;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<ITokenFactory, JwtTokenFactory>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -31,6 +34,8 @@ builder.Services
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT settings are required.");
+var authCookieOptions = builder.Configuration.GetSection(AuthCookieOptions.SectionName).Get<AuthCookieOptions>()
+    ?? throw new InvalidOperationException("Auth cookie settings are required.");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -53,9 +58,18 @@ builder.Services
             OnMessageReceived = context =>
             {
                 if (string.IsNullOrWhiteSpace(context.Token) &&
-                    context.Request.Cookies.TryGetValue(AuthCookieOptions.AccessTokenCookieName, out var token))
+                    context.Request.Cookies.TryGetValue(authCookieOptions.AccessTokenName, out var token))
                 {
                     context.Token = token;
+                }
+
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                if (context.Exception is SecurityTokenExpiredException)
+                {
+                    context.Response.Headers.TryAdd("X-Access-Token-Expired", "true");
                 }
 
                 return Task.CompletedTask;
@@ -84,6 +98,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCookiePolicy();
+app.UseMiddleware<RefreshFlowSignalMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 

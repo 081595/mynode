@@ -5,6 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TeacherAppointment.Application\TeacherAppointment.Application.csproj" />
   </ItemGroup>
 

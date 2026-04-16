@@ -14,10 +14,10 @@
 
 ## 3. Token Lifecycle and Session Management
 
-- [ ] 3.1 Implement post-verification token issuance (access + refresh) and refresh-token persistence.
-- [ ] 3.2 Implement refresh endpoint with server-side token validation and rotation logic.
-- [ ] 3.3 Implement logout endpoint that clears cookies and invalidates persisted refresh tokens.
-- [ ] 3.4 Add middleware/interceptor handling for expired access token and controlled refresh flow.
+- [x] 3.1 Implement post-verification token issuance (access + refresh) and refresh-token persistence.
+- [x] 3.2 Implement refresh endpoint with server-side token validation and rotation logic.
+- [x] 3.3 Implement logout endpoint that clears cookies and invalidates persisted refresh tokens.
+- [x] 3.4 Add middleware/interceptor handling for expired access token and controlled refresh flow.
 
 ## 4. Appointment Response Workflow
 

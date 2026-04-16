@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TeacherAppointment.Api.Controllers;
 
@@ -10,5 +11,12 @@ public sealed class HealthController : ControllerBase
     public IActionResult Get()
     {
         return Ok(new { status = "ok" });
+    }
+
+    [Authorize]
+    [HttpGet("secure")]
+    public IActionResult GetSecure()
+    {
+        return Ok(new { status = "authorized" });
     }
 }
