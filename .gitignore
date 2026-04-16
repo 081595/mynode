@@ -128,3 +128,37 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# ASP.NET Core / .NET
+bin/
+obj/
+TestResults/
+artifacts/
+
+# Visual Studio / VS Code / Rider
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+
+# ASP.NET Core local/runtime files
+appsettings.Local.json
+appsettings.*.local.json
+**/Properties/launchSettings.json
+
+# Coverage and profiling
+*.coverage
+*.coveragexml
+
+# OS-generated files commonly seen in .NET repos
+*.DS_Store
+Thumbs.db
