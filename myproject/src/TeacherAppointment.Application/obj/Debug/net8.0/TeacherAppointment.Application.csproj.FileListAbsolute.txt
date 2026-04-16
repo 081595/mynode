@@ -1,0 +1,13 @@
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.AssemblyInfoInputs.cache
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.AssemblyInfo.cs
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.csproj.CoreCompileInputs.cache
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.sourcelink.json
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/bin/Debug/net8.0/TeacherAppointment.Application.deps.json
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/bin/Debug/net8.0/TeacherAppointment.Application.dll
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/bin/Debug/net8.0/TeacherAppointment.Application.pdb
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.csproj.AssemblyReference.cache
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.dll
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/refint/TeacherAppointment.Application.dll
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/TeacherAppointment.Application.pdb
+/workspaces/mynode/myproject/src/TeacherAppointment.Application/obj/Debug/net8.0/ref/TeacherAppointment.Application.dll

@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "jbJThH2YVV0ZU/t7WW29Nye7J+udAbP+qXK6Lh2TDRY=",
+  "Source": "TeacherAppointment.Api",
+  "BasePath": "_content/TeacherAppointment.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

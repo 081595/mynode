@@ -1,8 +1,8 @@
 ## 1. Foundation and Project Wiring
 
-- [ ] 1.1 Establish solution/module structure for auth, appointment workflow, admin maintenance, and shared persistence abstractions.
-- [ ] 1.2 Configure JWT settings, cookie policies, and secure defaults (HttpOnly, SameSite, expiry) in environment-specific configuration.
-- [ ] 1.3 Add infrastructure integrations (email sender abstraction, QR code generator, SignalR hub) with testable interfaces.
+- [x] 1.1 Establish solution/module structure for auth, appointment workflow, admin maintenance, and shared persistence abstractions.
+- [x] 1.2 Configure JWT settings, cookie policies, and secure defaults (HttpOnly, SameSite, expiry) in environment-specific configuration.
+- [x] 1.3 Add infrastructure integrations (email sender abstraction, QR code generator, SignalR hub) with testable interfaces.
 
 ## 2. Authentication and Challenge Flow
 
