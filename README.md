@@ -20,7 +20,6 @@ After opening the repository in GitHub Codespaces, rebuild the dev container so 
 
 ### Useful commands
 
-- `npm start`
 - `npm run openspec -- --help`
 - `openspec --version`
 - `dotnet --info`
@@ -29,12 +28,11 @@ After opening the repository in GitHub Codespaces, rebuild the dev container so 
 ## Common development workflow
 
 1. Rebuild the Codespace container after changes to [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json).
-2. Run `npm start` to verify the Node.js app starts correctly.
-3. Run `openspec --version` to confirm the global OpenSpec install is available.
-4. Run `openspec config list` to verify expanded workflows are active (`new`, `continue`, `ff`, `sync`, `verify`, `bulk-archive`, `onboard`).
-5. Run `npm run sync:opsx` if you want to manually refresh prompts after OpenSpec changes.
-6. Run `npm run verify:opsx` to confirm the root workspace still exposes `opsx-*.prompt.md` files after rebuild or attach.
-7. Run `dotnet --info` when you need to inspect the installed .NET SDK and runtimes.
+2. Run `openspec --version` to confirm the global OpenSpec install is available.
+3. Run `openspec config list` to verify expanded workflows are active (`new`, `continue`, `ff`, `sync`, `verify`, `bulk-archive`, `onboard`).
+4. Run `npm run sync:opsx` if you want to manually refresh prompts after OpenSpec changes.
+5. Run `npm run verify:opsx` to confirm the root workspace still exposes `opsx-*.prompt.md` files after rebuild or attach.
+6. Run `dotnet --info` when you need to inspect the installed .NET SDK and runtimes.
 
 If Copilot slash commands such as `/opsx-propose` do not appear right after a rebuild, wait for the attach step to finish or run `npm run sync:opsx` and `npm run verify:opsx` once manually. The dev container now re-syncs prompt files on attach and prints an `OPSX PROMPT CHECK` banner so you can confirm the prompt files were discovered at workspace root.
 

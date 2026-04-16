@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node hello.js",
     "openspec": "openspec",
     "sync:opsx": "bash ./scripts/sync-opsx-prompts.sh",
     "verify:opsx": "bash ./scripts/verify-opsx-prompts.sh"
