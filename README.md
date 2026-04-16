@@ -32,7 +32,15 @@ After opening the repository in GitHub Codespaces, rebuild the dev container so 
 2. Run `npm start` to verify the Node.js app starts correctly.
 3. Run `openspec --version` to confirm the global OpenSpec install is available.
 4. Run `openspec config list` to verify expanded workflows are active (`new`, `continue`, `ff`, `sync`, `verify`, `bulk-archive`, `onboard`).
-5. Run `dotnet --info` when you need to inspect the installed .NET SDK and runtimes.
+5. Run `npm run sync:opsx` if you want to manually refresh prompts after OpenSpec changes.
+6. Run `dotnet --info` when you need to inspect the installed .NET SDK and runtimes.
+
+## OpenSpec prompt source of truth
+
+- Source of truth: [myproject/.github](myproject/.github)
+- Synced target for root workspace chat discovery: [.github](.github)
+
+The sync script `scripts/sync-opsx-prompts.sh` updates OpenSpec prompts/skills under `myproject/.github` and then copies them to the root `.github` folder.
 
 ## SQLite quick start
 

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node hello.js",
-    "openspec": "openspec"
+    "openspec": "openspec",
+    "sync:opsx": "./scripts/sync-opsx-prompts.sh"
   }
 }
