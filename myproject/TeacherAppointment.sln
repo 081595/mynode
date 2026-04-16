@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherAppointment.Applicat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherAppointment.Infrastructure", "src\TeacherAppointment.Infrastructure\TeacherAppointment.Infrastructure.csproj", "{AB8D186F-6878-4E92-AD8A-30012E7578F2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{37722728-C646-4907-A513-7C8C46043706}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeacherAppointment.IntegrationTests", "tests\TeacherAppointment.IntegrationTests\TeacherAppointment.IntegrationTests.csproj", "{3179366F-98FC-4E9A-9E2B-07975217076B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,10 +36,15 @@ Global
 		{AB8D186F-6878-4E92-AD8A-30012E7578F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB8D186F-6878-4E92-AD8A-30012E7578F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB8D186F-6878-4E92-AD8A-30012E7578F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3179366F-98FC-4E9A-9E2B-07975217076B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3179366F-98FC-4E9A-9E2B-07975217076B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3179366F-98FC-4E9A-9E2B-07975217076B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3179366F-98FC-4E9A-9E2B-07975217076B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C4DF8216-0890-4315-A67B-F095A7283F10} = {8A640C9C-5F2D-44EE-AE50-E75F905D5C9A}
 		{76382EBD-AE68-453E-9DE3-34F7957DD4AA} = {8A640C9C-5F2D-44EE-AE50-E75F905D5C9A}
 		{AB8D186F-6878-4E92-AD8A-30012E7578F2} = {8A640C9C-5F2D-44EE-AE50-E75F905D5C9A}
+		{3179366F-98FC-4E9A-9E2B-07975217076B} = {37722728-C646-4907-A513-7C8C46043706}
 	EndGlobalSection
 EndGlobal

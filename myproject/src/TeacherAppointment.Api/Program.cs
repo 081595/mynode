@@ -106,3 +106,5 @@ app.MapControllers();
 app.MapHub<AuthChallengeHub>("/hubs/auth-challenge");
 
 app.Run();
+
+public partial class Program;
