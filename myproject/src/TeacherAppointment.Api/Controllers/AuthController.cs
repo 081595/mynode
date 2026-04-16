@@ -30,7 +30,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("identify")]
     public async Task<ActionResult<IdentifyResponse>> IdentifyAsync([FromBody] IdentifyRequest request, CancellationToken cancellationToken)
     {
-        var result = await _identityChallengeService.InitializeAsync(request.IdNo, request.Birthday, cancellationToken);
+        var result = await _identityChallengeService.InitializeAsync(request.IdNo, request.Birthday, BuildClientContext(), cancellationToken);
         if (!result.Success || string.IsNullOrWhiteSpace(result.ChallengeId))
         {
             return Unauthorized(new ErrorResponse(result.Message));
@@ -45,10 +45,35 @@ public sealed class AuthController : ControllerBase
             !string.IsNullOrWhiteSpace(result.MaskedEmail)));
     }
 
+    [HttpPost("challenges/{challengeId}/resend")]
+    public async Task<ActionResult<ResendChallengeResponse>> ResendChallengeAsync(string challengeId, CancellationToken cancellationToken)
+    {
+        var result = await _identityChallengeService.ResendChallengeAsync(challengeId, BuildClientContext(), cancellationToken);
+        if (!result.Success)
+        {
+            if (result.Throttled)
+            {
+                if (result.RetryAfter is not null)
+                {
+                    Response.Headers["Retry-After"] = Math.Ceiling(result.RetryAfter.Value.TotalSeconds).ToString("0");
+                }
+
+                return StatusCode(StatusCodes.Status429TooManyRequests, new ErrorResponse(result.Message));
+            }
+
+            return BadRequest(new ErrorResponse(result.Message));
+        }
+
+        return Ok(new ResendChallengeResponse(
+            result.ChallengeId,
+            result.ExpiresAtUtc!.Value,
+            result.ResendAvailableAtUtc!.Value));
+    }
+
     [HttpPost("verify-email")]
     public async Task<ActionResult<VerifyEmailResponse>> VerifyEmailAsync([FromBody] VerifyEmailRequest request, CancellationToken cancellationToken)
     {
-        var result = await _identityChallengeService.VerifyEmailCodeAsync(request.ChallengeId, request.Code, cancellationToken);
+        var result = await _identityChallengeService.VerifyEmailCodeAsync(request.ChallengeId, request.Code, BuildClientContext(), cancellationToken);
         if (!result.Success)
         {
             return BadRequest(new ErrorResponse(result.Message));
@@ -60,7 +85,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("qr-sessions")]
     public async Task<ActionResult<CreateQrSessionResponse>> CreateQrSessionAsync([FromBody] CreateQrSessionRequest request, CancellationToken cancellationToken)
     {
-        var result = await _identityChallengeService.CreateQrSessionAsync(request.ChallengeId, cancellationToken);
+        var result = await _identityChallengeService.CreateQrSessionAsync(request.ChallengeId, BuildClientContext(), cancellationToken);
         if (!result.Success || string.IsNullOrWhiteSpace(result.SessionId) || result.ExpiresAtUtc is null)
         {
             return BadRequest(new ErrorResponse(result.Message));
@@ -75,7 +100,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("qr-sessions/{sessionId}/confirm")]
     public async Task<ActionResult<ConfirmQrSessionResponse>> ConfirmQrSessionAsync(string sessionId, CancellationToken cancellationToken)
     {
-        var result = await _identityChallengeService.ConfirmQrSessionAsync(sessionId, cancellationToken);
+        var result = await _identityChallengeService.ConfirmQrSessionAsync(sessionId, BuildClientContext(), cancellationToken);
         if (!result.Success || string.IsNullOrWhiteSpace(result.ChallengeId))
         {
             return BadRequest(new ErrorResponse(result.Message));
@@ -92,7 +117,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("sessions/exchange")]
     public async Task<ActionResult<SessionResponse>> ExchangeSessionAsync([FromBody] ExchangeSessionRequest request, CancellationToken cancellationToken)
     {
-        var result = await _authSessionService.IssueTokensAsync(request.ChallengeId, cancellationToken);
+        var result = await _authSessionService.IssueTokensAsync(request.ChallengeId, BuildClientContext(), cancellationToken);
         if (!result.Success ||
             string.IsNullOrWhiteSpace(result.AccessToken) ||
             string.IsNullOrWhiteSpace(result.RefreshToken) ||
@@ -122,7 +147,7 @@ public sealed class AuthController : ControllerBase
             return Unauthorized(new ErrorResponse("Missing refresh token."));
         }
 
-        var result = await _authSessionService.RefreshAsync(refreshToken, cancellationToken);
+        var result = await _authSessionService.RefreshAsync(refreshToken, BuildClientContext(), cancellationToken);
         if (!result.Success ||
             string.IsNullOrWhiteSpace(result.AccessToken) ||
             string.IsNullOrWhiteSpace(result.RefreshToken) ||
@@ -148,7 +173,7 @@ public sealed class AuthController : ControllerBase
     public async Task<ActionResult<LogoutResponse>> LogoutAsync(CancellationToken cancellationToken)
     {
         Request.Cookies.TryGetValue(_cookieOptions.RefreshTokenName, out var refreshToken);
-        var result = await _authSessionService.LogoutAsync(refreshToken, cancellationToken);
+        var result = await _authSessionService.LogoutAsync(refreshToken, BuildClientContext(), cancellationToken);
 
         Response.Cookies.Delete(_cookieOptions.AccessTokenName);
         Response.Cookies.Delete(_cookieOptions.RefreshTokenName);
@@ -190,6 +215,13 @@ public sealed class AuthController : ControllerBase
             : SameSiteMode.Strict;
     }
 
+    private AuthClientContext BuildClientContext()
+    {
+        return new AuthClientContext(
+            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            Request.Headers.UserAgent.ToString());
+    }
+
     public sealed record IdentifyRequest(string IdNo, DateOnly Birthday);
 
     public sealed record IdentifyResponse(
@@ -199,6 +231,11 @@ public sealed class AuthController : ControllerBase
         DateTime ExpiresAtUtc,
         DateTime ResendAvailableAtUtc,
         bool EmailDeliveryAvailable);
+
+    public sealed record ResendChallengeResponse(
+        string ChallengeId,
+        DateTime ExpiresAtUtc,
+        DateTime ResendAvailableAtUtc);
 
     public sealed record VerifyEmailRequest(string ChallengeId, string Code);
 

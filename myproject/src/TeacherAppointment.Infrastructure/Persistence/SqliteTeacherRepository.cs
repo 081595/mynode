@@ -1,15 +1,18 @@
 using Microsoft.Data.Sqlite;
 using TeacherAppointment.Application.Abstractions.Persistence;
+using TeacherAppointment.Application.Abstractions.Security;
 
 namespace TeacherAppointment.Infrastructure.Persistence;
 
 public sealed class SqliteTeacherRepository : ITeacherRepository
 {
     private readonly ISqliteConnectionFactory _connectionFactory;
+    private readonly ISensitiveDataMaskingPolicy _maskingPolicy;
 
-    public SqliteTeacherRepository(ISqliteConnectionFactory connectionFactory)
+    public SqliteTeacherRepository(ISqliteConnectionFactory connectionFactory, ISensitiveDataMaskingPolicy maskingPolicy)
     {
         _connectionFactory = connectionFactory;
+        _maskingPolicy = maskingPolicy;
     }
 
     public async Task<TeacherIdentityRecord?> FindByIdentityAsync(string idNo, DateOnly birthday, CancellationToken cancellationToken = default)
@@ -123,7 +126,7 @@ ON CONFLICT(yr, empl_no) DO UPDATE SET
             input.Year,
             input.EmployeeNo,
             input.IdNo,
-            MaskIdNo(input.IdNo),
+            _maskingPolicy.MaskIdNo(input.IdNo),
             input.Birthday,
             input.Name,
             input.Email,
@@ -147,7 +150,7 @@ WHERE yr = $yr AND empl_no = $emplNo;
         return affected > 0;
     }
 
-    private static TeacherIdentityRecord Map(SqliteDataReader reader)
+    private TeacherIdentityRecord Map(SqliteDataReader reader)
     {
         var year = reader.GetInt32(0);
         var employeeNo = reader.GetString(1);
@@ -162,21 +165,11 @@ WHERE yr = $yr AND empl_no = $emplNo;
             year,
             employeeNo,
             idNo,
-            MaskIdNo(idNo),
+            _maskingPolicy.MaskIdNo(idNo),
             birthday,
             name,
             email,
             role,
             isActive);
-    }
-
-    private static string MaskIdNo(string idNo)
-    {
-        if (idNo.Length < 4)
-        {
-            return "****";
-        }
-
-        return $"{idNo[0]}{idNo[1]}*****{idNo[^2]}{idNo[^1]}";
     }
 }

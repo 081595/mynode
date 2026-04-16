@@ -26,6 +26,7 @@ FROM teach_appo_resp
 WHERE yr = $yr AND empl_no = $emplNo
 ORDER BY appo_doc_yy DESC, appo_doc_ch, appo_doc_seq;
 """;
+    EnsureNoPdfContentInSummaryQuery(command.CommandText);
         command.Parameters.AddWithValue("$yr", year);
         command.Parameters.AddWithValue("$emplNo", employeeNo);
 
@@ -49,6 +50,7 @@ FROM teach_appo_resp
 WHERE yr = $yr
 ORDER BY empl_no, appo_doc_yy DESC, appo_doc_ch, appo_doc_seq;
 """;
+            EnsureNoPdfContentInSummaryQuery(command.CommandText);
             command.Parameters.AddWithValue("$yr", year);
         }
         else
@@ -60,6 +62,7 @@ FROM teach_appo_resp
 WHERE yr = $yr AND empl_no = $emplNo
 ORDER BY appo_doc_yy DESC, appo_doc_ch, appo_doc_seq;
 """;
+            EnsureNoPdfContentInSummaryQuery(command.CommandText);
             command.Parameters.AddWithValue("$yr", year);
             command.Parameters.AddWithValue("$emplNo", employeeNo);
         }
@@ -283,6 +286,14 @@ WHERE yr = $yr
     private static DateTime ParseDateTime(string value)
     {
         return DateTime.Parse(value, null, System.Globalization.DateTimeStyles.RoundtripKind);
+    }
+
+    private static void EnsureNoPdfContentInSummaryQuery(string sql)
+    {
+        if (sql.Contains("pdf_content", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Summary/list query cannot select pdf_content.");
+        }
     }
 
     private async Task<AppointmentAdminRecord?> GetAdminRecordAsync(AppointmentDocumentKey key, CancellationToken cancellationToken)

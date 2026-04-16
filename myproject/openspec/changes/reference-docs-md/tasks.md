@@ -34,9 +34,9 @@
 
 ## 6. Security Hardening and Auditability
 
-- [ ] 6.1 Implement rate limiting for identification and challenge resend actions by identity and client context.
-- [ ] 6.2 Implement LoginLogs/audit event recording for success/failure paths with verification method and failure reason.
-- [ ] 6.3 Add sensitive-data handling guards (field masking policy, avoid selecting `pdf_content` in non-download queries).
+- [x] 6.1 Implement rate limiting for identification and challenge resend actions by identity and client context.
+- [x] 6.2 Implement LoginLogs/audit event recording for success/failure paths with verification method and failure reason.
+- [x] 6.3 Add sensitive-data handling guards (field masking policy, avoid selecting `pdf_content` in non-download queries).
 
 ## 7. Validation and Delivery Readiness
 
