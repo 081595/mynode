@@ -40,7 +40,7 @@
 
 ## 7. Validation and Delivery Readiness
 
-- [ ] 7.1 Add scenario-based integration tests mapped to spec requirements for auth, token, workflow, and admin behaviors.
-- [ ] 7.2 Add negative/security tests for invalid identity, expired challenge, resend abuse, and unauthorized admin actions.
-- [ ] 7.3 Validate end-to-end QR and email verification flows with expected SignalR events and state transitions.
-- [ ] 7.4 Prepare deployment checklist, rollback toggles, and operational runbook notes for first rollout.
+- [x] 7.1 Add scenario-based integration tests mapped to spec requirements for auth, token, workflow, and admin behaviors.
+- [x] 7.2 Add negative/security tests for invalid identity, expired challenge, resend abuse, and unauthorized admin actions.
+- [x] 7.3 Validate end-to-end QR and email verification flows with expected SignalR events and state transitions.
+- [x] 7.4 Prepare deployment checklist, rollback toggles, and operational runbook notes for first rollout.
