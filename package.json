@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node hello.js",
     "openspec": "openspec",
-    "sync:opsx": "./scripts/sync-opsx-prompts.sh"
+    "sync:opsx": "bash ./scripts/sync-opsx-prompts.sh",
+    "verify:opsx": "bash ./scripts/verify-opsx-prompts.sh"
   }
 }
