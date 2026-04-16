@@ -1,5 +1,18 @@
 # mynode
 
+## Workspace purpose
+
+This repository is an OpenSpec workspace for documentation-driven change design and Copilot prompt/skill sync.
+
+Current contents are centered on:
+
+- OpenSpec change artifacts under [myproject/openspec](myproject/openspec)
+- Root-level Copilot prompt discovery under [.github](.github)
+- Helper scripts under [scripts](scripts) for syncing and verifying `opsx-*` prompts
+- Supporting reference docs under [docs](docs)
+
+There is no application runtime in this repository right now; `package.json` exists only to expose helper npm scripts.
+
 ## Codespaces setup
 
 This repository configures GitHub Codespaces with the following development tools:
@@ -21,7 +34,10 @@ After opening the repository in GitHub Codespaces, rebuild the dev container so 
 ### Useful commands
 
 - `npm run openspec -- --help`
+- `npm run sync:opsx`
+- `npm run verify:opsx`
 - `openspec --version`
+- `openspec config list`
 - `dotnet --info`
 - `sqlite3 --version`
 
@@ -42,6 +58,11 @@ If Copilot slash commands such as `/opsx-propose` do not appear right after a re
 - Synced target for root workspace chat discovery: [.github](.github)
 
 The sync script `scripts/sync-opsx-prompts.sh` updates OpenSpec prompts/skills under `myproject/.github` and then copies them to the root `.github` folder.
+
+## Repository notes
+
+- [package.json](package.json) is kept only for helper scripts used by the workspace.
+- The removed sample app entrypoint and Dockerfile were obsolete and are no longer part of the workflow.
 
 ## SQLite quick start
 
