@@ -31,7 +31,8 @@ After opening the repository in GitHub Codespaces, rebuild the dev container so 
 1. Rebuild the Codespace container after changes to [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json).
 2. Run `npm start` to verify the Node.js app starts correctly.
 3. Run `openspec --version` to confirm the global OpenSpec install is available.
-4. Run `dotnet --info` when you need to inspect the installed .NET SDK and runtimes.
+4. Run `openspec config list` to verify expanded workflows are active (`new`, `continue`, `ff`, `sync`, `verify`, `bulk-archive`, `onboard`).
+5. Run `dotnet --info` when you need to inspect the installed .NET SDK and runtimes.
 
 ## SQLite quick start
 
