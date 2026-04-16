@@ -179,6 +179,72 @@ LIMIT 1;
         return new AppointmentCompletionResult(true, isCompleted, affected > 0, updatedAtUtc);
     }
 
+    public async Task<AppointmentAdminRecord> UpsertForAdminAsync(
+        AppointmentAdminUpsertInput input,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+INSERT INTO teach_appo_resp (
+    yr, empl_no, appo_doc_yy, appo_doc_ch, appo_doc_seq,
+    file_name, pdf_content, resp_status, download_count, remark, create_date, update_date)
+VALUES (
+    $yr, $emplNo, $docYear, $docType, $docSeq,
+    $fileName, $pdfContent, $respStatus, $downloadCount, $remark, $createDate, $updateDate)
+ON CONFLICT(yr, empl_no, appo_doc_yy, appo_doc_ch, appo_doc_seq) DO UPDATE SET
+    file_name = COALESCE(excluded.file_name, teach_appo_resp.file_name),
+    pdf_content = COALESCE(excluded.pdf_content, teach_appo_resp.pdf_content),
+    resp_status = excluded.resp_status,
+    download_count = excluded.download_count,
+    remark = excluded.remark,
+    update_date = excluded.update_date;
+""";
+        BindKey(command, input.Key);
+        command.Parameters.AddWithValue("$fileName", (object?)input.FileName ?? DBNull.Value);
+        command.Parameters.AddWithValue("$pdfContent", (object?)input.PdfContent ?? DBNull.Value);
+        command.Parameters.AddWithValue("$respStatus", input.ResponseStatus);
+        command.Parameters.AddWithValue("$downloadCount", input.DownloadCount);
+        command.Parameters.AddWithValue("$remark", (object?)input.Remark ?? DBNull.Value);
+        command.Parameters.AddWithValue("$createDate", nowUtc.ToString("O"));
+        command.Parameters.AddWithValue("$updateDate", nowUtc.ToString("O"));
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return await GetAdminRecordAsync(input.Key, cancellationToken)
+               ?? new AppointmentAdminRecord(input.Key, input.FileName ?? "appointment.pdf", input.ResponseStatus, input.DownloadCount, input.Remark, nowUtc, nowUtc);
+    }
+
+    public async Task<AppointmentAdminRecord?> UpdateRemarkForAdminAsync(
+        AppointmentDocumentKey key,
+        string? remark,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = await _connectionFactory.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+UPDATE teach_appo_resp
+SET remark = $remark,
+    update_date = $updateDate
+WHERE yr = $yr
+  AND empl_no = $emplNo
+  AND appo_doc_yy = $docYear
+  AND appo_doc_ch = $docType
+  AND appo_doc_seq = $docSeq;
+""";
+        BindKey(command, key);
+        command.Parameters.AddWithValue("$remark", (object?)remark ?? DBNull.Value);
+        command.Parameters.AddWithValue("$updateDate", nowUtc.ToString("O"));
+        var affected = await command.ExecuteNonQueryAsync(cancellationToken);
+        if (affected == 0)
+        {
+            return null;
+        }
+
+        return await GetAdminRecordAsync(key, cancellationToken);
+    }
+
     private static async Task<IReadOnlyList<AppointmentResponseSummary>> ReadSummariesAsync(SqliteCommand command, CancellationToken cancellationToken)
     {
         var rows = new List<AppointmentResponseSummary>();
@@ -217,6 +283,38 @@ LIMIT 1;
     private static DateTime ParseDateTime(string value)
     {
         return DateTime.Parse(value, null, System.Globalization.DateTimeStyles.RoundtripKind);
+    }
+
+    private async Task<AppointmentAdminRecord?> GetAdminRecordAsync(AppointmentDocumentKey key, CancellationToken cancellationToken)
+    {
+        await using var connection = await _connectionFactory.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+SELECT file_name, resp_status, download_count, remark, create_date, update_date
+FROM teach_appo_resp
+WHERE yr = $yr
+  AND empl_no = $emplNo
+  AND appo_doc_yy = $docYear
+  AND appo_doc_ch = $docType
+  AND appo_doc_seq = $docSeq
+LIMIT 1;
+""";
+        BindKey(command, key);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var fileName = reader.IsDBNull(0) ? "appointment.pdf" : reader.GetString(0);
+        var responseStatus = reader.GetInt32(1);
+        var downloadCount = reader.GetInt32(2);
+        var remark = reader.IsDBNull(3) ? null : reader.GetString(3);
+        var createdAtUtc = ParseDateTime(reader.GetString(4));
+        var updatedAtUtc = ParseDateTime(reader.GetString(5));
+
+        return new AppointmentAdminRecord(key, fileName, responseStatus, downloadCount, remark, createdAtUtc, updatedAtUtc);
     }
 
     private static void BindKey(SqliteCommand command, AppointmentDocumentKey key)

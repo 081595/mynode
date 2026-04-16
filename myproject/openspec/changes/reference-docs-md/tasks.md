@@ -28,9 +28,9 @@
 
 ## 5. Admin Maintenance and Governance
 
-- [ ] 5.1 Implement admin-only CRUD endpoints/pages for teacher base data (`teach_appo_empl_base`).
-- [ ] 5.2 Implement admin-only maintenance endpoints/pages for appointment records (`teach_appo_resp`) including PDF upload and remarks updates.
-- [ ] 5.3 Enforce authorization policy checks on all maintenance operations and record denial events for unauthorized attempts.
+- [x] 5.1 Implement admin-only CRUD endpoints/pages for teacher base data (`teach_appo_empl_base`).
+- [x] 5.2 Implement admin-only maintenance endpoints/pages for appointment records (`teach_appo_resp`) including PDF upload and remarks updates.
+- [x] 5.3 Enforce authorization policy checks on all maintenance operations and record denial events for unauthorized attempts.
 
 ## 6. Security Hardening and Auditability
 

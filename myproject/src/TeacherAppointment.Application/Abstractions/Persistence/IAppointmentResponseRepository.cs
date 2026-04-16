@@ -22,6 +22,17 @@ public interface IAppointmentResponseRepository
         AppointmentDocumentKey key,
         DateTime nowUtc,
         CancellationToken cancellationToken = default);
+
+    Task<AppointmentAdminRecord> UpsertForAdminAsync(
+        AppointmentAdminUpsertInput input,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default);
+
+    Task<AppointmentAdminRecord?> UpdateRemarkForAdminAsync(
+        AppointmentDocumentKey key,
+        string? remark,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record AppointmentResponseSummary(
@@ -56,3 +67,20 @@ public sealed record AppointmentCompletionResult(
     bool IsCompleted,
     bool Changed,
     DateTime? UpdatedAtUtc);
+
+public sealed record AppointmentAdminUpsertInput(
+    AppointmentDocumentKey Key,
+    string? FileName,
+    byte[]? PdfContent,
+    int ResponseStatus,
+    int DownloadCount,
+    string? Remark);
+
+public sealed record AppointmentAdminRecord(
+    AppointmentDocumentKey Key,
+    string FileName,
+    int ResponseStatus,
+    int DownloadCount,
+    string? Remark,
+    DateTime CreatedAtUtc,
+    DateTime UpdatedAtUtc);
