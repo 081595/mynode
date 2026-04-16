@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -6,11 +6,11 @@
 
 ## 2. Authentication and Challenge Flow
 
-- [ ] 2.1 Implement identification endpoint for `id_no` + `birthday` with teacher lookup and generic failure behavior.
-- [ ] 2.2 Implement challenge initialization (6-digit code, expiry, resend cooldown, audit events) and persistence updates.
-- [ ] 2.3 Implement email verification endpoint with expiry/code validation and one-time challenge completion semantics.
-- [ ] 2.4 Implement QR session creation/confirmation flow with unique session IDs and expiration checks.
-- [ ] 2.5 Implement SignalR notifications for QR confirmation completion (desktop redirect + mobile close event contract).
+- [x] 2.1 Implement identification endpoint for `id_no` + `birthday` with teacher lookup and generic failure behavior.
+- [x] 2.2 Implement challenge initialization (6-digit code, expiry, resend cooldown, audit events) and persistence updates.
+- [x] 2.3 Implement email verification endpoint with expiry/code validation and one-time challenge completion semantics.
+- [x] 2.4 Implement QR session creation/confirmation flow with unique session IDs and expiration checks.
+- [x] 2.5 Implement SignalR notifications for QR confirmation completion (desktop redirect + mobile close event contract).
 
 ## 3. Token Lifecycle and Session Management
 
