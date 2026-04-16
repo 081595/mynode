@@ -1,5 +1,6 @@
 ---
 description: Archive multiple completed changes at once
+name: "opsx:bulk-archive"
 ---
 
 Archive multiple completed changes in a single operation.

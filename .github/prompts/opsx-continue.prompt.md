@@ -1,5 +1,6 @@
 ---
 description: Continue working on a change - create the next artifact (Experimental)
+name: "opsx:continue"
 ---
 
 Continue working on a change by creating the next artifact.

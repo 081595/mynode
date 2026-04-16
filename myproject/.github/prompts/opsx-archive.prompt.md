@@ -1,5 +1,6 @@
 ---
 description: Archive a completed change in the experimental workflow
+name: "opsx:archive"
 ---
 
 Archive a completed change in the experimental workflow.

@@ -1,5 +1,6 @@
 ---
 description: Implement tasks from an OpenSpec change (Experimental)
+name: "opsx:apply"
 ---
 
 Implement tasks from an OpenSpec change.
