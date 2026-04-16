@@ -19,7 +19,7 @@ openspec update .
 
 for f in "$PROJECT_DIR/.github/prompts"/opsx-*.prompt.md; do
   n="$(basename "$f" .prompt.md)"
-  a="${n/opsx-/opsx:}"
+  a="$n"
   if grep -q '^name:' "$f"; then
     sed -i "s|^name:.*$|name: \"$a\"|" "$f"
   else
