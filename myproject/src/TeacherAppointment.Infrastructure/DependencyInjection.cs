@@ -27,6 +27,12 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(RateLimitOptions.SectionName))
             .ValidateOnStart();
 
+        services
+            .AddOptions<RoleBasedTestAccountProvisioningOptions>()
+            .Bind(configuration.GetSection(RoleBasedTestAccountProvisioningOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddSingleton<ISqliteConnectionFactory, SqliteConnectionFactory>();
         services.AddHostedService<SqliteDbInitializer>();
         services.AddSignalR();

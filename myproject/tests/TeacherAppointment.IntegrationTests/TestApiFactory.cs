@@ -11,9 +11,40 @@ namespace TeacherAppointment.IntegrationTests;
 public sealed class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly string _dbPath;
+    private readonly bool _cleanupOnDispose;
+    private readonly string _environmentName;
+    private readonly bool _enableRoleBasedProvisioning;
 
     public TestApiFactory()
+        : this(
+            dbPath: null,
+            cleanupOnDispose: true,
+            environmentName: "Development",
+            enableRoleBasedProvisioning: true)
     {
+    }
+
+    private TestApiFactory(
+        string? dbPath = null,
+        bool cleanupOnDispose = true,
+        string environmentName = "Development",
+        bool enableRoleBasedProvisioning = true)
+    {
+        _cleanupOnDispose = cleanupOnDispose;
+        _environmentName = environmentName;
+        _enableRoleBasedProvisioning = enableRoleBasedProvisioning;
+
+        if (!string.IsNullOrWhiteSpace(dbPath))
+        {
+            _dbPath = dbPath;
+            var parent = Path.GetDirectoryName(_dbPath);
+            if (!string.IsNullOrWhiteSpace(parent))
+            {
+                Directory.CreateDirectory(parent);
+            }
+            return;
+        }
+
         var dbDir = Path.Combine(Path.GetTempPath(), "teacher-appointment-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dbDir);
         _dbPath = Path.Combine(dbDir, "teacher-appointment.integration.db");
@@ -21,16 +52,29 @@ public sealed class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifet
 
     public string DbPath => _dbPath;
 
+    public static TestApiFactory Create(
+        string? dbPath = null,
+        bool cleanupOnDispose = true,
+        string environmentName = "Development",
+        bool enableRoleBasedProvisioning = true)
+    {
+        return new TestApiFactory(dbPath, cleanupOnDispose, environmentName, enableRoleBasedProvisioning);
+    }
+
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment(_environmentName);
         builder.ConfigureAppConfiguration((_, configBuilder) =>
         {
             configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Sqlite:ConnectionString"] = $"Data Source={_dbPath}",
                 ["AuthCookies:AccessTokenName"] = "ta_access_token_it",
-                ["AuthCookies:RefreshTokenName"] = "ta_refresh_token_it"
+                ["AuthCookies:RefreshTokenName"] = "ta_refresh_token_it",
+                ["RoleBasedTestAccountProvisioning:Enabled"] = _enableRoleBasedProvisioning.ToString(),
+                ["RoleBasedTestAccountProvisioning:EligibleEnvironments:0"] = "Development",
+                ["RoleBasedTestAccountProvisioning:EligibleEnvironments:1"] = "Testing",
+                ["RoleBasedTestAccountProvisioning:EligibleEnvironments:2"] = "Staging"
             });
         });
     }
@@ -57,7 +101,7 @@ public sealed class TestApiFactory : WebApplicationFactory<Program>, IAsyncLifet
         Dispose();
 
         var dbDir = Path.GetDirectoryName(_dbPath);
-        if (!string.IsNullOrWhiteSpace(dbDir) && Directory.Exists(dbDir))
+        if (_cleanupOnDispose && !string.IsNullOrWhiteSpace(dbDir) && Directory.Exists(dbDir))
         {
             Directory.Delete(dbDir, recursive: true);
         }
@@ -109,6 +153,18 @@ LIMIT 1;
         command.Parameters.AddWithValue("$docType", docType);
         command.Parameters.AddWithValue("$docSeq", docSeq);
 
+        var scalar = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(scalar);
+    }
+
+    public async Task<int> CountTeachersByEmployeeNoAsync(string employeeNo)
+    {
+        await using var connection = new SqliteConnection($"Data Source={_dbPath}");
+        await connection.OpenAsync();
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(1) FROM teach_appo_empl_base WHERE empl_no = $emplNo;";
+        command.Parameters.AddWithValue("$emplNo", employeeNo);
         var scalar = await command.ExecuteScalarAsync();
         return Convert.ToInt32(scalar);
     }

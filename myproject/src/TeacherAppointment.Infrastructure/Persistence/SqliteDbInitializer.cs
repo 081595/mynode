@@ -1,22 +1,34 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace TeacherAppointment.Infrastructure.Persistence;
 
 public sealed class SqliteDbInitializer : IHostedService
 {
     private readonly ISqliteConnectionFactory _connectionFactory;
+    private readonly IHostEnvironment _hostEnvironment;
+    private readonly IOptions<RoleBasedTestAccountProvisioningOptions> _provisioningOptions;
+    private readonly ILogger<SqliteDbInitializer> _logger;
 
-    public SqliteDbInitializer(ISqliteConnectionFactory connectionFactory)
+    public SqliteDbInitializer(
+        ISqliteConnectionFactory connectionFactory,
+        IHostEnvironment hostEnvironment,
+        IOptions<RoleBasedTestAccountProvisioningOptions> provisioningOptions,
+        ILogger<SqliteDbInitializer> logger)
     {
         _connectionFactory = connectionFactory;
+        _hostEnvironment = hostEnvironment;
+        _provisioningOptions = provisioningOptions;
+        _logger = logger;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         await using var connection = await _connectionFactory.OpenConnectionAsync(cancellationToken);
         await EnsureSchemaAsync(connection, cancellationToken);
-        await SeedTeachersAsync(connection, cancellationToken);
+        await ProvisionRoleBasedTestAccountsAsync(connection, cancellationToken);
         await SeedAppointmentsAsync(connection, cancellationToken);
     }
 
@@ -108,37 +120,148 @@ CREATE INDEX IF NOT EXISTS idx_teach_appo_resp_teacher ON teach_appo_resp (yr, e
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    private static async Task SeedTeachersAsync(SqliteConnection connection, CancellationToken cancellationToken)
+    private async Task ProvisionRoleBasedTestAccountsAsync(SqliteConnection connection, CancellationToken cancellationToken)
     {
+        var options = _provisioningOptions.Value;
+
+        if (!options.Enabled)
+        {
+            _logger.LogInformation(
+                "Role-based test account provisioning skipped: enabled flag is false. env={Environment}",
+                _hostEnvironment.EnvironmentName);
+            return;
+        }
+
+        var eligible = options.EligibleEnvironments.Any(env =>
+            string.Equals(env, _hostEnvironment.EnvironmentName, StringComparison.OrdinalIgnoreCase));
+
+        if (!eligible)
+        {
+            _logger.LogWarning(
+                "Role-based test account provisioning blocked by environment guardrail. env={Environment} eligible={EligibleEnvironments}",
+                _hostEnvironment.EnvironmentName,
+                string.Join(",", options.EligibleEnvironments));
+            return;
+        }
+
+        _logger.LogInformation(
+            "Role-based test account provisioning enabled. env={Environment} templatePrefix={TemplatePrefix}",
+            _hostEnvironment.EnvironmentName,
+            "TST");
+
         var seeds = new[]
         {
-            new { Yr = 115, EmplNo = "E12345", IdNo = "A123456789", Birthday = "1985-03-17", Name = "Alex Teacher", Email = "alex.teacher@example.edu", Role = "user" },
-            new { Yr = 115, EmplNo = "A00001", IdNo = "B223456789", Birthday = "1978-10-04", Name = "Admin User", Email = "admin.user@example.edu", Role = "admin" }
+            new { Yr = 115, EmplNo = "TST-U-0001", IdNo = "A123456789", Birthday = "1985-03-17", Name = "Alex Teacher", Email = "alex.teacher@example.edu", Role = "user" },
+            new { Yr = 115, EmplNo = "TST-A-0001", IdNo = "B223456789", Birthday = "1978-10-04", Name = "Admin User", Email = "admin.user@example.edu", Role = "admin" }
         };
+
+        var outcomeByRole = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var seed in seeds)
         {
-            await using var cmd = connection.CreateCommand();
-            cmd.CommandText = """
-INSERT INTO teach_appo_empl_base (yr, empl_no, id_no, birthday, ch_name, email, role, is_active)
-VALUES ($yr, $emplNo, $idNo, $birthday, $name, $email, $role, 1)
-ON CONFLICT(yr, empl_no) DO UPDATE SET
-    id_no = excluded.id_no,
-    birthday = excluded.birthday,
-    ch_name = excluded.ch_name,
-    email = excluded.email,
-    role = excluded.role,
-    is_active = excluded.is_active;
-""";
-            cmd.Parameters.AddWithValue("$yr", seed.Yr);
-            cmd.Parameters.AddWithValue("$emplNo", seed.EmplNo);
-            cmd.Parameters.AddWithValue("$idNo", seed.IdNo);
-            cmd.Parameters.AddWithValue("$birthday", seed.Birthday);
-            cmd.Parameters.AddWithValue("$name", seed.Name);
-            cmd.Parameters.AddWithValue("$email", seed.Email);
-            cmd.Parameters.AddWithValue("$role", seed.Role);
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            try
+            {
+                var result = await UpsertTeacherSeedAsync(connection, seed, cancellationToken);
+                outcomeByRole[seed.Role] = result;
+                _logger.LogInformation(
+                    "Role-based test account provisioning result: action={Action} role={Role} year={Year} employeeNo={EmployeeNo}",
+                    result,
+                    seed.Role,
+                    seed.Yr,
+                    seed.EmplNo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Role-based test account provisioning failed: role={Role} year={Year} employeeNo={EmployeeNo}",
+                    seed.Role,
+                    seed.Yr,
+                    seed.EmplNo);
+                throw;
+            }
         }
+
+        _logger.LogInformation(
+            "Role-based test account provisioning summary: user={UserOutcome} admin={AdminOutcome}",
+            outcomeByRole.GetValueOrDefault("user", "skipped"),
+            outcomeByRole.GetValueOrDefault("admin", "skipped"));
+    }
+
+    private static async Task<string> UpsertTeacherSeedAsync(
+        SqliteConnection connection,
+        dynamic seed,
+        CancellationToken cancellationToken)
+    {
+        await using var readCmd = connection.CreateCommand();
+        readCmd.CommandText = """
+SELECT id_no, birthday, ch_name, email, role, is_active
+FROM teach_appo_empl_base
+WHERE yr = $yr AND empl_no = $emplNo
+LIMIT 1;
+""";
+        readCmd.Parameters.AddWithValue("$yr", (int)seed.Yr);
+        readCmd.Parameters.AddWithValue("$emplNo", (string)seed.EmplNo);
+
+        await using var reader = await readCmd.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            await using var insertCmd = connection.CreateCommand();
+            insertCmd.CommandText = """
+INSERT INTO teach_appo_empl_base (yr, empl_no, id_no, birthday, ch_name, email, role, is_active)
+VALUES ($yr, $emplNo, $idNo, $birthday, $name, $email, $role, 1);
+""";
+            insertCmd.Parameters.AddWithValue("$yr", (int)seed.Yr);
+            insertCmd.Parameters.AddWithValue("$emplNo", (string)seed.EmplNo);
+            insertCmd.Parameters.AddWithValue("$idNo", (string)seed.IdNo);
+            insertCmd.Parameters.AddWithValue("$birthday", (string)seed.Birthday);
+            insertCmd.Parameters.AddWithValue("$name", (string)seed.Name);
+            insertCmd.Parameters.AddWithValue("$email", (string)seed.Email);
+            insertCmd.Parameters.AddWithValue("$role", (string)seed.Role);
+            await insertCmd.ExecuteNonQueryAsync(cancellationToken);
+            return "created";
+        }
+
+        var idNo = reader.GetString(0);
+        var birthday = reader.GetString(1);
+        var name = reader.GetString(2);
+        var email = reader.IsDBNull(3) ? null : reader.GetString(3);
+        var role = reader.GetString(4);
+        var isActive = reader.GetInt32(5) == 1;
+        await reader.CloseAsync();
+
+        var isUnchanged = string.Equals(idNo, (string)seed.IdNo, StringComparison.Ordinal)
+            && string.Equals(birthday, (string)seed.Birthday, StringComparison.Ordinal)
+            && string.Equals(name, (string)seed.Name, StringComparison.Ordinal)
+            && string.Equals(email, (string)seed.Email, StringComparison.Ordinal)
+            && string.Equals(role, (string)seed.Role, StringComparison.Ordinal)
+            && isActive;
+
+        if (isUnchanged)
+        {
+            return "skipped";
+        }
+
+        await using var updateCmd = connection.CreateCommand();
+        updateCmd.CommandText = """
+UPDATE teach_appo_empl_base
+SET id_no = $idNo,
+    birthday = $birthday,
+    ch_name = $name,
+    email = $email,
+    role = $role,
+    is_active = 1
+WHERE yr = $yr AND empl_no = $emplNo;
+""";
+        updateCmd.Parameters.AddWithValue("$yr", (int)seed.Yr);
+        updateCmd.Parameters.AddWithValue("$emplNo", (string)seed.EmplNo);
+        updateCmd.Parameters.AddWithValue("$idNo", (string)seed.IdNo);
+        updateCmd.Parameters.AddWithValue("$birthday", (string)seed.Birthday);
+        updateCmd.Parameters.AddWithValue("$name", (string)seed.Name);
+        updateCmd.Parameters.AddWithValue("$email", (string)seed.Email);
+        updateCmd.Parameters.AddWithValue("$role", (string)seed.Role);
+        await updateCmd.ExecuteNonQueryAsync(cancellationToken);
+        return "updated";
     }
 
     private static async Task SeedAppointmentsAsync(SqliteConnection connection, CancellationToken cancellationToken)
@@ -149,11 +272,11 @@ ON CONFLICT(yr, empl_no) DO UPDATE SET
             new
             {
                 Yr = 115,
-                EmplNo = "E12345",
+                EmplNo = "TST-U-0001",
                 DocYear = 115,
                 DocType = "教字",
                 DocSeq = "0001",
-                FileName = "appointment-115-E12345-0001.pdf",
+                FileName = "appointment-115-TST-U-0001-0001.pdf",
                 Pdf = "Sample appointment PDF #1",
                 RespStatus = 0,
                 DownloadCount = 0,
@@ -162,11 +285,11 @@ ON CONFLICT(yr, empl_no) DO UPDATE SET
             new
             {
                 Yr = 115,
-                EmplNo = "E12345",
+                EmplNo = "TST-U-0001",
                 DocYear = 115,
                 DocType = "教字",
                 DocSeq = "0002",
-                FileName = "appointment-115-E12345-0002.pdf",
+                FileName = "appointment-115-TST-U-0001-0002.pdf",
                 Pdf = "Sample appointment PDF #2",
                 RespStatus = 1,
                 DownloadCount = 2,

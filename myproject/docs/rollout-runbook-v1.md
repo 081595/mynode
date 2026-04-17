@@ -19,6 +19,35 @@ This checklist covers first production rollout for auth challenge, token/session
 - Confirm TLS termination is enabled and HTTP is redirected to HTTPS.
 - Confirm static web assets are served for `wwwroot/css/portal.css`, `wwwroot/js/portal-async.js`, and `wwwroot/js/auth-verify.js`.
 - Confirm outbound access policy allows frontend CDNs used by Bootstrap 5 and SignalR browser client, or mirror these assets internally.
+- Confirm `RoleBasedTestAccountProvisioning:Enabled=false` for production deployments.
+- Confirm `RoleBasedTestAccountProvisioning:EligibleEnvironments` excludes production-like environment names.
+
+## Role-Based Test Account Provisioning
+
+Configuration contract:
+- `RoleBasedTestAccountProvisioning:Enabled`: explicit toggle for provisioning behavior.
+- `RoleBasedTestAccountProvisioning:EligibleEnvironments`: allowed environment names; provisioning runs only when current environment is listed.
+
+Seeded account contract (non-production only):
+- `user`: `empl_no=TST-U-0001`, `id_no=A123456789`, `birthday=1985-03-17`
+- `admin`: `empl_no=TST-A-0001`, `id_no=B223456789`, `birthday=1978-10-04`
+
+Deterministic key convention:
+- Reserved employee number prefix `TST-` is dedicated to role-based test accounts to reduce collision risk with non-test records.
+- Application should avoid assigning `TST-*` employee numbers to real identities.
+
+Expected startup logs:
+- Enabled path: `Role-based test account provisioning enabled. ...`
+- Skipped path: `Role-based test account provisioning skipped: enabled flag is false. ...`
+- Blocked path: `Role-based test account provisioning blocked by environment guardrail. ...`
+- Per-account outcomes: `action=created|updated|skipped role=user|admin ...`
+- Summary: `Role-based test account provisioning summary: user=... admin=...`
+
+Troubleshooting:
+1. If provisioning is unexpectedly skipped, verify `Enabled=true` in the effective runtime config.
+2. If provisioning is blocked, compare current `ASPNETCORE_ENVIRONMENT` with `EligibleEnvironments`.
+3. If no test account can log in, inspect startup logs for per-account outcomes and any provisioning failure error entry.
+4. If duplicate-like behavior is suspected, query `teach_appo_empl_base` for `empl_no IN ('TST-U-0001','TST-A-0001')`; expected count is exactly one row per employee number.
 
 ## Deployment Steps
 1. Create a database backup snapshot before rollout.

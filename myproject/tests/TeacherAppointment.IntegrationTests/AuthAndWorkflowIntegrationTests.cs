@@ -44,13 +44,13 @@ public sealed class AuthAndWorkflowIntegrationTests : IClassFixture<TestApiFacto
         var listResponse = await teacherClient.GetAsync("/api/appointments?year=115");
         await TestApiFactory.AssertStatusWithBodyAsync(listResponse, HttpStatusCode.OK);
 
-        var beforeDownloadCount = await _factory.GetDownloadCountAsync(115, "E12345", 115, "教字", "0001");
-        var teacherPdfResponse = await teacherClient.GetAsync("/api/appointments/115/E12345/115/教字/0001/pdf");
+        var beforeDownloadCount = await _factory.GetDownloadCountAsync(115, "TST-U-0001", 115, "教字", "0001");
+        var teacherPdfResponse = await teacherClient.GetAsync("/api/appointments/115/TST-U-0001/115/教字/0001/pdf");
         await TestApiFactory.AssertStatusWithBodyAsync(teacherPdfResponse, HttpStatusCode.OK);
-        var afterTeacherDownloadCount = await _factory.GetDownloadCountAsync(115, "E12345", 115, "教字", "0001");
+        var afterTeacherDownloadCount = await _factory.GetDownloadCountAsync(115, "TST-U-0001", 115, "教字", "0001");
         Assert.Equal(beforeDownloadCount + 1, afterTeacherDownloadCount);
 
-        var completeResponse = await teacherClient.PostAsync("/api/appointments/115/E12345/115/教字/0001/complete", null);
+        var completeResponse = await teacherClient.PostAsync("/api/appointments/115/TST-U-0001/115/教字/0001/complete", null);
         await TestApiFactory.AssertStatusWithBodyAsync(completeResponse, HttpStatusCode.OK);
 
         using var adminClient = _factory.CreateApiClient();
@@ -79,10 +79,10 @@ public sealed class AuthAndWorkflowIntegrationTests : IClassFixture<TestApiFacto
         var (adminAccessToken, adminRefreshToken) = TestApiFactory.ExtractTokensFromSetCookie(adminExchangeResponse);
         TestApiFactory.AttachSession(adminClient, adminAccessToken, adminRefreshToken);
 
-        var beforeAdminPreviewCount = await _factory.GetDownloadCountAsync(115, "E12345", 115, "教字", "0001");
-        var adminPreview = await adminClient.GetAsync("/api/appointments/115/E12345/115/教字/0001/pdf");
+        var beforeAdminPreviewCount = await _factory.GetDownloadCountAsync(115, "TST-U-0001", 115, "教字", "0001");
+        var adminPreview = await adminClient.GetAsync("/api/appointments/115/TST-U-0001/115/教字/0001/pdf");
         await TestApiFactory.AssertStatusWithBodyAsync(adminPreview, HttpStatusCode.OK);
-        var afterAdminPreviewCount = await _factory.GetDownloadCountAsync(115, "E12345", 115, "教字", "0001");
+        var afterAdminPreviewCount = await _factory.GetDownloadCountAsync(115, "TST-U-0001", 115, "教字", "0001");
         Assert.Equal(beforeAdminPreviewCount, afterAdminPreviewCount);
 
         var teacherDeniedAdminCall = await teacherClient.GetAsync("/api/admin/teachers?year=115");
