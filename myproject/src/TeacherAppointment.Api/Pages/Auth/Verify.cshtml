@@ -31,6 +31,13 @@
                     <input type="hidden" asp-for="ChallengeId" />
                     <button class="btn btn-success" type="submit">我已完成驗證，登入系統</button>
                 </form>
+                @if (Model.DevVerificationCode is not null)
+                {
+                    <div class="alert alert-warning mt-3 mb-0 py-2 px-3">
+                        <span class="small fw-semibold">🧪 Dev 驗證碼：</span>
+                        <code class="fs-5 ms-1">@Model.DevVerificationCode</code>
+                    </div>
+                }
             </div>
         </div>
     </div>

@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using TeacherAppointment.Api.Security;
 using TeacherAppointment.Application.Abstractions.Infrastructure;
+using TeacherAppointment.Application.Abstractions.Persistence;
 using TeacherAppointment.Application.Features.Auth;
 
 namespace TeacherAppointment.Api.Pages.Auth;
@@ -12,17 +14,23 @@ public sealed class VerifyModel : PortalPageModel
     private readonly IAuthSessionService _authSessionService;
     private readonly IQrCodeGenerator _qrCodeGenerator;
     private readonly AuthCookieOptions _cookieOptions;
+    private readonly IAuthChallengeRepository _authChallengeRepository;
+    private readonly IHostEnvironment _hostEnvironment;
 
     public VerifyModel(
         IIdentityChallengeService identityChallengeService,
         IAuthSessionService authSessionService,
         IQrCodeGenerator qrCodeGenerator,
-        IOptions<AuthCookieOptions> cookieOptions)
+        IOptions<AuthCookieOptions> cookieOptions,
+        IAuthChallengeRepository authChallengeRepository,
+        IHostEnvironment hostEnvironment)
     {
         _identityChallengeService = identityChallengeService;
         _authSessionService = authSessionService;
         _qrCodeGenerator = qrCodeGenerator;
         _cookieOptions = cookieOptions.Value;
+        _authChallengeRepository = authChallengeRepository;
+        _hostEnvironment = hostEnvironment;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -39,12 +47,20 @@ public sealed class VerifyModel : PortalPageModel
 
     public bool EmailVerified { get; private set; }
 
-    public IActionResult OnGet()
+    public string? DevVerificationCode { get; private set; }
+
+    public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(ChallengeId))
         {
             FlashWarning = "缺少驗證挑戰資訊，請重新登入。";
             return RedirectToPage("/Auth/Login");
+        }
+
+        if (_hostEnvironment.IsDevelopment())
+        {
+            var challenge = await _authChallengeRepository.GetByIdAsync(ChallengeId, cancellationToken);
+            DevVerificationCode = challenge?.VerificationCode;
         }
 
         return Page();
