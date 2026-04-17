@@ -1,0 +1,24 @@
+@if (!string.IsNullOrWhiteSpace(ViewData["InlineSuccess"] as string))
+{
+    <div class="alert alert-success" role="status">@ViewData["InlineSuccess"]</div>
+}
+@if (!string.IsNullOrWhiteSpace(ViewData["InlineWarning"] as string))
+{
+    <div class="alert alert-warning" role="status">@ViewData["InlineWarning"]</div>
+}
+@if (!string.IsNullOrWhiteSpace(ViewData["InlineError"] as string))
+{
+    <div class="alert alert-danger" role="alert">@ViewData["InlineError"]</div>
+}
+@if (!string.IsNullOrWhiteSpace(TempData["FlashSuccess"] as string))
+{
+    <div class="alert alert-success" role="status">@TempData["FlashSuccess"]</div>
+}
+@if (!string.IsNullOrWhiteSpace(TempData["FlashWarning"] as string))
+{
+    <div class="alert alert-warning" role="status">@TempData["FlashWarning"]</div>
+}
+@if (!string.IsNullOrWhiteSpace(TempData["FlashError"] as string))
+{
+    <div class="alert alert-danger" role="alert">@TempData["FlashError"]</div>
+}

@@ -1,0 +1,66 @@
+@page
+@model TeacherAppointment.Api.Pages.Auth.VerifyModel
+@{
+    ViewData["Title"] = "雙因素驗證";
+}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card card-surface h-100">
+            <div class="card-body p-4">
+                <h1 class="h5 mb-3">Email 驗證</h1>
+                <p class="small text-secondary">請輸入 Email 取得的 6 碼驗證碼。</p>
+                <div id="email-status" class="mb-2"></div>
+                <form method="post" asp-page-handler="VerifyEmail" data-async-form="true" data-status-target="#email-status">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ChallengeId" />
+                    <div class="input-group">
+                        <input asp-for="Code" class="form-control" maxlength="6" required placeholder="輸入驗證碼" />
+                        <button class="btn btn-primary" type="submit">驗證</button>
+                    </div>
+                </form>
+                <form method="post" asp-page-handler="Resend" class="mt-3" data-async-form="true" data-status-target="#email-status">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ChallengeId" />
+                    <button class="btn btn-outline-secondary" type="submit">重新寄送驗證碼</button>
+                    <span class="async-indicator ms-2 text-secondary small">處理中...</span>
+                </form>
+                <hr />
+                <form id="exchange-form" method="post" asp-page-handler="Exchange" data-async-form="true" data-status-target="#email-status">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ChallengeId" />
+                    <button class="btn btn-success" type="submit">我已完成驗證，登入系統</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card card-surface h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">QR 驗證</h2>
+                <p class="small text-secondary">用手機掃描 QR 後按確認，桌機將自動收到登入訊號。</p>
+                <div id="qr-status" class="mb-2"></div>
+                <form id="create-qr-form" method="post" asp-page-handler="CreateQr" data-async-form="true" data-status-target="#qr-status">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ChallengeId" />
+                    <button class="btn btn-outline-primary" type="submit">產生 QR</button>
+                </form>
+                <div class="mt-3">
+                    <img id="qr-image" class="img-fluid border rounded d-none" alt="QR code" />
+                </div>
+                <div id="signalr-warning" class="small text-warning mt-3 d-none">即時通道不可用，請在手機確認後按「我已完成驗證，登入系統」。</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/%40microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/auth-verify.js" asp-append-version="true"></script>
+    <script>
+        window.portalVerify = {
+            challengeId: "@Model.ChallengeId"
+        };
+    </script>
+}

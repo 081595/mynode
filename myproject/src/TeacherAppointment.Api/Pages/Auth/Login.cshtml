@@ -1,0 +1,27 @@
+@page
+@model TeacherAppointment.Api.Pages.Auth.LoginModel
+@{
+    ViewData["Title"] = "登入";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card card-surface">
+            <div class="card-body p-4">
+                <h1 class="h5 mb-3">身分識別</h1>
+                <p class="text-secondary small mb-4">輸入身分證字號與生日後，系統會啟動 Email 或 QR 驗證流程。</p>
+                <form method="post" class="vstack gap-3">
+                    <div>
+                        <label asp-for="Input.IdNo" class="form-label">身分證字號</label>
+                        <input asp-for="Input.IdNo" class="form-control" required />
+                    </div>
+                    <div>
+                        <label asp-for="Input.Birthday" class="form-label">生日</label>
+                        <input asp-for="Input.Birthday" class="form-control" type="date" required />
+                    </div>
+                    <button class="btn btn-primary" type="submit">送出並產生驗證挑戰</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

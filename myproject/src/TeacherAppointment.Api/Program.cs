@@ -17,6 +17,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<ITokenFactory, JwtTokenFactory>();
 
 builder.Services.AddControllers();
+builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -97,12 +98,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
 app.UseCookiePolicy();
 app.UseMiddleware<RefreshFlowSignalMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapRazorPages();
 app.MapHub<AuthChallengeHub>("/hubs/auth-challenge");
 
 app.Run();

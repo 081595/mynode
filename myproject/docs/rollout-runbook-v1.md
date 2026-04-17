@@ -3,6 +3,13 @@
 ## Scope
 This checklist covers first production rollout for auth challenge, token/session, appointment workflow, and admin maintenance APIs.
 
+## SSR Portal Entry Points
+- Public dashboard: `GET /`
+- Authentication pages: `GET /Auth/Login`, `GET /Auth/Verify`
+- Teacher workspace: `GET /Teacher/Index`
+- Admin workspaces: `GET /Admin/Teachers`, `GET /Admin/Appointments`
+- Existing API routes remain available under `/api/*` for integration and automation.
+
 ## Pre-Deployment Checklist
 - Confirm OpenSpec change `reference-docs-md` is fully complete and verified.
 - Run `dotnet build TeacherAppointment.sln` and `dotnet test TeacherAppointment.sln` with no failures.
@@ -10,6 +17,8 @@ This checklist covers first production rollout for auth challenge, token/session
 - Validate `Sqlite:ConnectionString` points to production storage path with backup policy enabled.
 - Confirm reverse proxy preserves client IP headers for audit logging.
 - Confirm TLS termination is enabled and HTTP is redirected to HTTPS.
+- Confirm static web assets are served for `wwwroot/css/portal.css`, `wwwroot/js/portal-async.js`, and `wwwroot/js/auth-verify.js`.
+- Confirm outbound access policy allows frontend CDNs used by Bootstrap 5 and SignalR browser client, or mirror these assets internally.
 
 ## Deployment Steps
 1. Create a database backup snapshot before rollout.
@@ -26,6 +35,7 @@ This checklist covers first production rollout for auth challenge, token/session
 - Toggle A: Disable new auth challenge flow by routing traffic away from `/api/auth/*` endpoints in gateway rules.
 - Toggle B: Disable admin maintenance writes by denying `PUT/PATCH/DELETE /api/admin/*` at ingress.
 - Toggle C: Disable refresh flow by blocking `/api/auth/sessions/refresh` while preserving logout.
+- Toggle D: Disable Razor Pages portal by removing or feature-flagging `MapRazorPages` route mapping while keeping `/api/*` endpoints live.
 
 Rollback procedure:
 1. Stop incoming traffic to new routes using toggles above.

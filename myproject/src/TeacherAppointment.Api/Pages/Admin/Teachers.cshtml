@@ -1,0 +1,94 @@
+@page
+@model TeacherAppointment.Api.Pages.Admin.TeachersModel
+@{
+    ViewData["Title"] = "教師維護";
+}
+
+<div class="card card-surface mb-4">
+    <div class="card-body p-4">
+        <h1 class="h5">教師資料維護</h1>
+        <form method="get" class="row g-2 mt-1">
+            <div class="col-md-2">
+                <input class="form-control" type="number" name="year" value="@Model.Year" min="100" placeholder="年度" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" name="employeeNo" value="@Model.EmployeeNo" placeholder="教職員編號" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" type="submit">查詢</button>
+            </div>
+        </form>
+        <div id="teacher-admin-status" class="mt-2"></div>
+    </div>
+</div>
+
+<div class="card card-surface mb-4">
+    <div class="card-body p-4">
+        <h2 class="h6">新增或更新教師</h2>
+        <form method="post" asp-page-handler="Upsert" data-async-form="true" data-status-target="#teacher-admin-status" class="row g-2">
+            @Html.AntiForgeryToken()
+            <div class="col-md-2"><input asp-for="Input.Year" class="form-control" placeholder="年度" /></div>
+            <div class="col-md-2"><input asp-for="Input.EmployeeNo" class="form-control" placeholder="編號" /></div>
+            <div class="col-md-2"><input asp-for="Input.IdNo" class="form-control" placeholder="身分證" /></div>
+            <div class="col-md-2"><input asp-for="Input.Birthday" type="date" class="form-control" /></div>
+            <div class="col-md-2"><input asp-for="Input.Name" class="form-control" placeholder="姓名" /></div>
+            <div class="col-md-2"><input asp-for="Input.Email" class="form-control" placeholder="Email" /></div>
+            <div class="col-md-2">
+                <select asp-for="Input.Role" class="form-select">
+                    <option value="user">user</option>
+                    <option value="admin">admin</option>
+                </select>
+            </div>
+            <div class="col-md-2 form-check d-flex align-items-center gap-2 ms-1">
+                <input asp-for="Input.IsActive" class="form-check-input" />
+                <label asp-for="Input.IsActive" class="form-check-label">啟用</label>
+            </div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">儲存</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="card card-surface">
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table portal-table">
+                <thead>
+                <tr>
+                    <th>年度</th>
+                    <th>編號</th>
+                    <th>姓名</th>
+                    <th>信箱</th>
+                    <th>角色</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Rows.Count == 0)
+                {
+                    <tr><td colspan="7" class="text-secondary">目前沒有資料。</td></tr>
+                }
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        <td>@row.Year</td>
+                        <td>@row.EmployeeNo</td>
+                        <td>@row.Name</td>
+                        <td>@row.Email</td>
+                        <td>@row.Role</td>
+                        <td>@(row.IsActive ? "啟用" : "停用")</td>
+                        <td>
+                            <form method="post" asp-page-handler="Deactivate" data-async-form="true" data-status-target="#teacher-admin-status" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="year" value="@row.Year" />
+                                <input type="hidden" name="employeeNo" value="@row.EmployeeNo" />
+                                <button class="btn btn-sm btn-outline-danger" type="submit">停用</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,65 @@
+@{
+    var name = User.FindFirst("name")?.Value;
+    var emplNo = User.FindFirst("empl_no")?.Value;
+    var maskedId = User.FindFirst("id_no_masked")?.Value;
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var isAdmin = string.Equals(User.FindFirst(ClaimTypes.Role)?.Value, "admin", StringComparison.OrdinalIgnoreCase);
+}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 教師聘書管理系統</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-semibold" asp-page="/Index">教師聘書管理系統</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portal-nav" aria-controls="portal-nav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="portal-nav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" asp-page="/Index">首頁</a></li>
+                    @if (isAuthenticated)
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-page="/Teacher/Index">聘書作業</a></li>
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-page="/Admin/Teachers">教師維護</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-page="/Admin/Appointments">聘書維護</a></li>
+                        }
+                    }
+                </ul>
+                <div class="d-flex align-items-center gap-2 text-white small">
+                    <span class="badge text-bg-light">伺服器時間 @DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm:ss")</span>
+                    @if (isAuthenticated)
+                    {
+                        <span class="badge text-bg-info">@emplNo @name @maskedId</span>
+                        <form method="post" asp-page="/Auth/Logout">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-light">登出</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-page="/Auth/Login" class="btn btn-sm btn-light">登入</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <partial name="_PortalAlerts" />
+        @RenderBody()
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="~/js/portal-async.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

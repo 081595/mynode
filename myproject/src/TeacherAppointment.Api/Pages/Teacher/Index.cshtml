@@ -1,0 +1,67 @@
+@page
+@model TeacherAppointment.Api.Pages.Teacher.IndexModel
+@{
+    ViewData["Title"] = "聘書作業";
+}
+
+<div class="card card-surface">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h1 class="h5 m-0">教師聘書作業</h1>
+            <form method="get" class="d-flex gap-2">
+                <input type="number" class="form-control" name="year" value="@Model.Year" min="100" />
+                <button class="btn btn-outline-primary" type="submit">查詢</button>
+            </form>
+        </div>
+
+        <div id="teacher-status"></div>
+
+        <div class="table-responsive">
+            <table class="table portal-table align-middle">
+                <thead>
+                <tr>
+                    <th>文號</th>
+                    <th>回覆狀態</th>
+                    <th>下載次數</th>
+                    <th>更新時間</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Rows.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-secondary">此年度無聘書紀錄。</td></tr>
+                }
+                @foreach (var row in Model.Rows)
+                {
+                    var statusClass = row.Responded ? "status-chip-success" : "status-chip-muted";
+                    var statusText = row.Responded ? "已回覆" : "未回覆";
+                    <tr data-key="@row.Year-@row.EmployeeNo-@row.DocumentYear-@row.DocumentType-@row.DocumentSequence">
+                        <td>@row.DocumentNo</td>
+                        <td><span class="status-chip @statusClass">@statusText</span></td>
+                        <td>@row.DownloadCount</td>
+                        <td>@row.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="d-flex flex-wrap gap-2">
+                            <a class="btn btn-sm btn-outline-secondary"
+                               href="/api/appointments/@row.Year/@row.EmployeeNo/@row.DocumentYear/@row.DocumentType/@row.DocumentSequence/pdf">下載 PDF</a>
+                            <form method="post"
+                                  asp-page-handler="Complete"
+                                  data-async-form="true"
+                                  data-status-target="#teacher-status"
+                                  class="d-inline-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="year" value="@row.Year" />
+                                <input type="hidden" name="employeeNo" value="@row.EmployeeNo" />
+                                <input type="hidden" name="docYear" value="@row.DocumentYear" />
+                                <input type="hidden" name="docType" value="@row.DocumentType" />
+                                <input type="hidden" name="docSeq" value="@row.DocumentSequence" />
+                                <button type="submit" class="btn btn-sm btn-primary">完成回覆</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

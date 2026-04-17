@@ -1,0 +1,26 @@
+@page
+@model TeacherAppointment.Api.Pages.IndexModel
+@{
+    ViewData["Title"] = "首頁";
+}
+
+<div class="card card-surface">
+    <div class="card-body p-4">
+        <h1 class="h4 mb-3">教師聘書管理系統</h1>
+        <p class="text-secondary mb-3">伺服器端渲染入口，整合登入驗證、聘書作業與管理維護。</p>
+        <p class="mb-4">伺服器時間：<strong>@Model.ServerTimeLocal.ToString("yyyy-MM-dd HH:mm:ss")</strong></p>
+
+        @if (!Model.IsAuthenticated)
+        {
+            <a class="btn btn-primary" asp-page="/Auth/Login">開始登入</a>
+        }
+        else
+        {
+            <a class="btn btn-primary" asp-page="/Teacher/Index">前往聘書作業</a>
+            @if (Model.IsAdmin)
+            {
+                <a class="btn btn-outline-primary ms-2" asp-page="/Admin/Teachers">前往管理維護</a>
+            }
+        }
+    </div>
+</div>
