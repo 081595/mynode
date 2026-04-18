@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TeacherAppointment.Api.Pages;
@@ -24,6 +25,15 @@ public abstract class PortalPageModel : PageModel
     public string UserEmployeeNo => User.FindFirstValue("empl_no") ?? string.Empty;
 
     public string UserMaskedId => User.FindFirstValue("id_no_masked") ?? string.Empty;
+
+    public override void OnPageHandlerExecuting(PageHandlerExecutingContext context)
+    {
+        Response.Headers["Cache-Control"] = "no-store, no-cache, max-age=0";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
+
+        base.OnPageHandlerExecuting(context);
+    }
 
     protected IActionResult RequireAuthenticated(string message = "請先登入再繼續。")
     {
