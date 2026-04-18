@@ -1,2 +1,8 @@
 @page
 @model TeacherAppointment.Api.Pages.Auth.LogoutModel
+@{
+    ViewData["Title"] = "登出";
+}
+
+<!-- Logout action is processed solely via OnPostAsync; this page redirects immediately after logout completion -->
+<div class="alert alert-info">您正在登出...</div>
