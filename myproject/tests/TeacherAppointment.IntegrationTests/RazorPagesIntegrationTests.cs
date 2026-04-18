@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace TeacherAppointment.IntegrationTests;
 
@@ -75,6 +76,64 @@ public sealed class RazorPagesIntegrationTests : IClassFixture<TestApiFactory>
         Assert.Contains("即時通道不可用", html);
     }
 
+    [Fact]
+    public async Task Logout_ThenHome_DoesNotShowAuthenticatedBadge()
+    {
+        using var adminClient = _factory.CreateApiClient();
+
+        var challengeId = await StartAndVerifyByEmailAsync(adminClient, "B223456789", "1978-10-04");
+        var exchangeResponse = await adminClient.PostAsync(
+            "/api/auth/sessions/exchange",
+            TestApiFactory.JsonBody("{" + $"\"challengeId\":\"{challengeId}\"" + "}"));
+        await TestApiFactory.AssertStatusWithBodyAsync(exchangeResponse, HttpStatusCode.OK);
+
+        var (accessToken, refreshToken) = TestApiFactory.ExtractTokensFromSetCookie(exchangeResponse);
+        TestApiFactory.AttachSession(adminClient, accessToken, refreshToken);
+
+        var beforeLogoutHome = await adminClient.GetAsync("/");
+        Assert.Equal(HttpStatusCode.OK, beforeLogoutHome.StatusCode);
+        var beforeLogoutHtml = await beforeLogoutHome.Content.ReadAsStringAsync();
+        Assert.Contains("TST-A-0001", beforeLogoutHtml);
+        Assert.Contains("Admin User", beforeLogoutHtml);
+
+        var token = ExtractRequestVerificationToken(beforeLogoutHtml);
+        var logoutResponse = await adminClient.PostAsync(
+            "/Auth/Logout",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["__RequestVerificationToken"] = token
+            }));
+
+        Assert.Equal(HttpStatusCode.Redirect, logoutResponse.StatusCode);
+        var location = logoutResponse.Headers.Location?.OriginalString;
+        Assert.True(
+            string.Equals(location, "/", StringComparison.Ordinal) ||
+            string.Equals(location, "/Index", StringComparison.OrdinalIgnoreCase),
+            $"Unexpected logout redirect location: {location}");
+
+        if (logoutResponse.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
+        {
+            Assert.Contains(cookieHeaders, value => value.StartsWith("ta_access_token_it=;", StringComparison.Ordinal));
+            Assert.Contains(cookieHeaders, value => value.StartsWith("ta_refresh_token_it=;", StringComparison.Ordinal));
+        }
+        else
+        {
+            throw new Xunit.Sdk.XunitException("Logout response did not include Set-Cookie headers.");
+        }
+
+        adminClient.DefaultRequestHeaders.Authorization = null;
+        adminClient.DefaultRequestHeaders.Remove("Cookie");
+
+        var afterLogoutHome = await adminClient.GetAsync("/");
+        Assert.Equal(HttpStatusCode.OK, afterLogoutHome.StatusCode);
+        var afterLogoutHtml = await afterLogoutHome.Content.ReadAsStringAsync();
+
+        Assert.DoesNotContain("TST-A-0001", afterLogoutHtml);
+        Assert.DoesNotContain("Admin User", afterLogoutHtml);
+        Assert.DoesNotContain("B2*****89", afterLogoutHtml);
+        Assert.Contains("開始登入", afterLogoutHtml);
+    }
+
     private async Task<string> StartAndVerifyByEmailAsync(HttpClient client, string idNo, string birthday)
     {
         var identifyResponse = await client.PostAsync(
@@ -94,5 +153,20 @@ public sealed class RazorPagesIntegrationTests : IClassFixture<TestApiFactory>
                                     "}"));
         await TestApiFactory.AssertStatusWithBodyAsync(verifyResponse, HttpStatusCode.OK);
         return challengeId;
+    }
+
+    private static string ExtractRequestVerificationToken(string html)
+    {
+        var match = Regex.Match(
+            html,
+            "name=\"__RequestVerificationToken\"[^>]*value=\"(?<token>[^\"]+)\"",
+            RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+        {
+            throw new Xunit.Sdk.XunitException("Unable to find __RequestVerificationToken in page HTML.");
+        }
+
+        return match.Groups["token"].Value;
     }
 }

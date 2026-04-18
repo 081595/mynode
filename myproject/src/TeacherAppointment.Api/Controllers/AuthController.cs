@@ -175,8 +175,7 @@ public sealed class AuthController : ControllerBase
         Request.Cookies.TryGetValue(_cookieOptions.RefreshTokenName, out var refreshToken);
         var result = await _authSessionService.LogoutAsync(refreshToken, BuildClientContext(), cancellationToken);
 
-        Response.Cookies.Delete(_cookieOptions.AccessTokenName);
-        Response.Cookies.Delete(_cookieOptions.RefreshTokenName);
+        DeleteAuthCookies();
 
         return Ok(new LogoutResponse(result.Success, result.Message));
     }
@@ -213,6 +212,20 @@ public sealed class AuthController : ControllerBase
         return Enum.TryParse<SameSiteMode>(value, ignoreCase: true, out var parsed)
             ? parsed
             : SameSiteMode.Strict;
+    }
+
+    private void DeleteAuthCookies()
+    {
+        var deleteOptions = new CookieOptions
+        {
+            HttpOnly = _cookieOptions.HttpOnly,
+            Secure = _cookieOptions.Secure,
+            SameSite = ParseSameSite(_cookieOptions.SameSite),
+            Path = "/"
+        };
+
+        Response.Cookies.Delete(_cookieOptions.AccessTokenName, deleteOptions);
+        Response.Cookies.Delete(_cookieOptions.RefreshTokenName, deleteOptions);
     }
 
     private AuthClientContext BuildClientContext()

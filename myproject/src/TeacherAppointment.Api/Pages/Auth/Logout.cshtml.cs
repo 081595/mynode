@@ -26,9 +26,26 @@ public sealed class LogoutModel : PortalPageModel
                 Request.Headers.UserAgent.ToString()),
             cancellationToken);
 
-        Response.Cookies.Delete(_cookieOptions.AccessTokenName);
-        Response.Cookies.Delete(_cookieOptions.RefreshTokenName);
+        DeleteAuthCookies();
         FlashSuccess = "您已登出。";
         return RedirectToPage("/Index");
+    }
+
+    private void DeleteAuthCookies()
+    {
+        var sameSite = Enum.TryParse<SameSiteMode>(_cookieOptions.SameSite, ignoreCase: true, out var parsed)
+            ? parsed
+            : SameSiteMode.Strict;
+
+        var deleteOptions = new CookieOptions
+        {
+            HttpOnly = _cookieOptions.HttpOnly,
+            Secure = _cookieOptions.Secure,
+            SameSite = sameSite,
+            Path = "/"
+        };
+
+        Response.Cookies.Delete(_cookieOptions.AccessTokenName, deleteOptions);
+        Response.Cookies.Delete(_cookieOptions.RefreshTokenName, deleteOptions);
     }
 }
