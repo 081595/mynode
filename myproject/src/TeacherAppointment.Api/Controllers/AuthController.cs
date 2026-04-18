@@ -226,20 +226,24 @@ public sealed class AuthController : ControllerBase
 
     private string BuildQrConfirmationUrl(string sessionId)
     {
+        string baseUrl = null;
         if (!string.IsNullOrWhiteSpace(_qrOptions.PublicBaseUrl) &&
             Uri.TryCreate(_qrOptions.PublicBaseUrl, UriKind.Absolute, out var baseUri))
         {
-            return new Uri(baseUri, $"/api/auth/qr-sessions/{Uri.EscapeDataString(sessionId)}/confirm").ToString();
+            baseUrl = baseUri.ToString().TrimEnd('/');
         }
-
-        var codespacesBaseUrl = ResolveCodespacesPublicBaseUrl();
-        if (codespacesBaseUrl is not null)
+        else if (ResolveCodespacesPublicBaseUrl() is string codespacesBaseUrl)
         {
-            return $"{codespacesBaseUrl}/api/auth/qr-sessions/{Uri.EscapeDataString(sessionId)}/confirm";
+            baseUrl = codespacesBaseUrl.TrimEnd('/');
+        }
+        else
+        {
+            baseUrl = $"{Request.Scheme}://{Request.Host}";
         }
 
         var escapedSessionId = Uri.EscapeDataString(sessionId);
-        return $"{Request.Scheme}://{Request.Host}/api/auth/qr-sessions/{escapedSessionId}/confirm";
+        // 產生 /auth/confirm?sessionId=xxx 連結
+        return $"{baseUrl}/auth/confirm?sessionId={escapedSessionId}";
     }
 
     private string? ResolveCodespacesPublicBaseUrl()
