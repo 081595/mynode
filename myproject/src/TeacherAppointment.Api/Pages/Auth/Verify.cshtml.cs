@@ -135,8 +135,29 @@ public sealed class VerifyModel : PortalPageModel
             return new Uri(baseUri, $"/api/auth/qr-sessions/{Uri.EscapeDataString(sessionId)}/confirm").ToString();
         }
 
+        var codespacesBaseUrl = ResolveCodespacesPublicBaseUrl();
+        if (codespacesBaseUrl is not null)
+        {
+            return $"{codespacesBaseUrl}/api/auth/qr-sessions/{Uri.EscapeDataString(sessionId)}/confirm";
+        }
+
         var escapedSessionId = Uri.EscapeDataString(sessionId);
         return $"{Request.Scheme}://{Request.Host}/api/auth/qr-sessions/{escapedSessionId}/confirm";
+    }
+
+    private string? ResolveCodespacesPublicBaseUrl()
+    {
+        var codespaceName = Environment.GetEnvironmentVariable("CODESPACE_NAME");
+        var forwardingDomain = Environment.GetEnvironmentVariable("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN");
+        if (string.IsNullOrWhiteSpace(codespaceName) || string.IsNullOrWhiteSpace(forwardingDomain))
+        {
+            return null;
+        }
+
+        var port = Request.Host.Port
+            ?? (string.Equals(Request.Scheme, "https", StringComparison.OrdinalIgnoreCase) ? 443 : 80);
+
+        return $"https://{codespaceName}-{port}.{forwardingDomain}";
     }
 
     public async Task<IActionResult> OnPostExchangeAsync(CancellationToken cancellationToken)
