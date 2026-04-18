@@ -91,10 +91,22 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new ErrorResponse(result.Message));
         }
 
-        var confirmationPayload = $"teacher-appointment://auth/qr-confirm?sessionId={result.SessionId}";
+        var confirmationPayload = BuildQrConfirmationUrl(result.SessionId);
         var qrCodeDataUri = _qrCodeGenerator.GenerateDataUri(confirmationPayload);
 
         return Ok(new CreateQrSessionResponse(result.ChallengeId!, result.SessionId, result.ExpiresAtUtc.Value, confirmationPayload, qrCodeDataUri));
+    }
+
+    [HttpGet("qr-sessions/{sessionId}/confirm")]
+    public async Task<IActionResult> ConfirmQrSessionByGetAsync(string sessionId, CancellationToken cancellationToken)
+    {
+        var result = await _identityChallengeService.ConfirmQrSessionAsync(sessionId, BuildClientContext(), cancellationToken);
+        if (!result.Success)
+        {
+            return Content("<html><body><h3>QR 驗證失敗</h3><p>連結已失效或驗證已完成，請回桌機重試。</p></body></html>", "text/html; charset=utf-8");
+        }
+
+        return Content("<html><body><h3>QR 驗證成功</h3><p>可回到桌機完成登入，或直接關閉此頁。</p></body></html>", "text/html; charset=utf-8");
     }
 
     [HttpPost("qr-sessions/{sessionId}/confirm")]
@@ -212,6 +224,12 @@ public sealed class AuthController : ControllerBase
         return Enum.TryParse<SameSiteMode>(value, ignoreCase: true, out var parsed)
             ? parsed
             : SameSiteMode.Strict;
+    }
+
+    private string BuildQrConfirmationUrl(string sessionId)
+    {
+        var escapedSessionId = Uri.EscapeDataString(sessionId);
+        return $"{Request.Scheme}://{Request.Host}/api/auth/qr-sessions/{escapedSessionId}/confirm";
     }
 
     private void DeleteAuthCookies()

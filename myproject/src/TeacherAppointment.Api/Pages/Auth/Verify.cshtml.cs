@@ -110,7 +110,7 @@ public sealed class VerifyModel : PortalPageModel
             return new JsonResult(new { success = false, message = result.Message });
         }
 
-        var payload = $"teacher-appointment://auth/qr-confirm?sessionId={result.SessionId}";
+        var payload = BuildQrConfirmationUrl(result.SessionId);
         var dataUri = _qrCodeGenerator.GenerateDataUri(payload);
 
         return new JsonResult(new
@@ -121,6 +121,12 @@ public sealed class VerifyModel : PortalPageModel
             qrCodeDataUri = dataUri,
             expiresAtUtc = result.ExpiresAtUtc
         });
+    }
+
+    private string BuildQrConfirmationUrl(string sessionId)
+    {
+        var escapedSessionId = Uri.EscapeDataString(sessionId);
+        return $"{Request.Scheme}://{Request.Host}/api/auth/qr-sessions/{escapedSessionId}/confirm";
     }
 
     public async Task<IActionResult> OnPostExchangeAsync(CancellationToken cancellationToken)

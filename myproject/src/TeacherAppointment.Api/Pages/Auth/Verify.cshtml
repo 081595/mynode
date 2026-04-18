@@ -46,7 +46,7 @@
         <div class="card card-surface h-100">
             <div class="card-body p-4">
                 <h2 class="h5 mb-3">QR 驗證</h2>
-                <p class="small text-secondary">用手機掃描 QR 後按確認，桌機將自動收到登入訊號。</p>
+                <p class="small text-secondary">用手機掃描 QR 並開啟連結，桌機將自動收到登入訊號。</p>
                 <div id="qr-status" class="mb-2"></div>
                 <form id="create-qr-form" method="post" asp-page-handler="CreateQr" data-async-form="true" data-status-target="#qr-status">
                     @Html.AntiForgeryToken()
