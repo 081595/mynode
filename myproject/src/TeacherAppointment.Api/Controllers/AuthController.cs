@@ -14,17 +14,20 @@ public sealed class AuthController : ControllerBase
     private readonly IAuthSessionService _authSessionService;
     private readonly IQrCodeGenerator _qrCodeGenerator;
     private readonly AuthCookieOptions _cookieOptions;
+    private readonly QrOptions _qrOptions;
 
     public AuthController(
         IIdentityChallengeService identityChallengeService,
         IAuthSessionService authSessionService,
         IQrCodeGenerator qrCodeGenerator,
-        IOptions<AuthCookieOptions> cookieOptions)
+        IOptions<AuthCookieOptions> cookieOptions,
+        IOptions<QrOptions> qrOptions)
     {
         _identityChallengeService = identityChallengeService;
         _authSessionService = authSessionService;
         _qrCodeGenerator = qrCodeGenerator;
         _cookieOptions = cookieOptions.Value;
+        _qrOptions = qrOptions.Value;
     }
 
     [HttpPost("identify")]
@@ -228,6 +231,12 @@ public sealed class AuthController : ControllerBase
 
     private string BuildQrConfirmationUrl(string sessionId)
     {
+        if (!string.IsNullOrWhiteSpace(_qrOptions.PublicBaseUrl) &&
+            Uri.TryCreate(_qrOptions.PublicBaseUrl, UriKind.Absolute, out var baseUri))
+        {
+            return new Uri(baseUri, $"/api/auth/qr-sessions/{Uri.EscapeDataString(sessionId)}/confirm").ToString();
+        }
+
         var escapedSessionId = Uri.EscapeDataString(sessionId);
         return $"{Request.Scheme}://{Request.Host}/api/auth/qr-sessions/{escapedSessionId}/confirm";
     }
