@@ -121,6 +121,7 @@ public sealed class VerifyModel : PortalPageModel
             success = true,
             message = "QR 驗證已建立，請用手機掃描。",
             sessionId = result.SessionId,
+            confirmationPayload = payload,
             qrCodeDataUri = dataUri,
             expiresAtUtc = result.ExpiresAtUtc
         });

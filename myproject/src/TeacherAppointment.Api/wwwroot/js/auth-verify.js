@@ -20,6 +20,14 @@
                 image.src = payload.qrCodeDataUri;
                 image.classList.remove("d-none");
             }
+
+            const openQrLink = byId("open-qr-link");
+            if (openQrLink instanceof HTMLAnchorElement && payload.confirmationPayload) {
+                openQrLink.href = payload.confirmationPayload;
+                openQrLink.classList.remove("disabled");
+                openQrLink.removeAttribute("aria-disabled");
+            }
+
             await connectSignalR(payload.sessionId);
         }
 

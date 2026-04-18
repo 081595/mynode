@@ -51,7 +51,15 @@
                 <form id="create-qr-form" method="post" asp-page-handler="CreateQr" data-async-form="true" data-status-target="#qr-status">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="ChallengeId" />
-                    <button class="btn btn-outline-primary" type="submit">產生 QR</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" type="submit">產生 QR</button>
+                        <a id="open-qr-link"
+                           class="btn btn-outline-secondary disabled"
+                           href="#"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           aria-disabled="true">開啟 QR 連結</a>
+                    </div>
                 </form>
                 <div class="mt-3">
                     <img id="qr-image" class="img-fluid border rounded d-none" alt="QR code" />
