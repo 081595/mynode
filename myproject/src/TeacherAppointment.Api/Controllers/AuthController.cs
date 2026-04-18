@@ -101,15 +101,10 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpGet("qr-sessions/{sessionId}/confirm")]
-    public async Task<IActionResult> ConfirmQrSessionByGetAsync(string sessionId, CancellationToken cancellationToken)
+    public IActionResult ConfirmQrSessionByGet(string sessionId)
     {
-        var result = await _identityChallengeService.ConfirmQrSessionAsync(sessionId, BuildClientContext(), cancellationToken);
-        if (!result.Success)
-        {
-            return Content("<html><body><h3>QR 驗證失敗</h3><p>連結已失效或驗證已完成，請回桌機重試。</p></body></html>", "text/html; charset=utf-8");
-        }
-
-        return Content("<html><body><h3>QR 驗證成功</h3><p>可回到桌機完成登入，或直接關閉此頁。</p></body></html>", "text/html; charset=utf-8");
+        // 導向 Razor Page 讓使用者手動按下驗證按鈕
+        return Redirect($"/auth/confirm?sessionId={Uri.EscapeDataString(sessionId)}");
     }
 
     [HttpPost("qr-sessions/{sessionId}/confirm")]
