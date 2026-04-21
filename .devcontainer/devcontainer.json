@@ -34,6 +34,6 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev && sudo npm install -g @fission-ai/openspec && dotnet restore ./myproject/TeacherAppointment.sln && dotnet build ./myproject/TeacherAppointment.sln && bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh",
-  "postAttachCommand": "bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh"
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev && sudo npm install -g @fission-ai/openspec && sudo npm install -g @google/gemini-cli && dotnet restore ./myproject/TeacherAppointment.sln && dotnet build ./myproject/TeacherAppointment.sln && bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh && source /workspaces/mynode/.devcontainer/set-gemini-env.sh",
+  "postAttachCommand": "bash ./scripts/sync-opsx-prompts.sh && bash ./scripts/verify-opsx-prompts.sh && source /workspaces/mynode/.devcontainer/set-gemini-env.sh"
 }
