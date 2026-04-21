@@ -163,3 +163,6 @@ myproject/src/TeacherAppointment.Api/data/*.db
 # OS-generated files commonly seen in .NET repos
 *.DS_Store
 Thumbs.db
+
+# Gemini API key script
+.devcontainer/set-gemini-env.sh
