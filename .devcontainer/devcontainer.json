@@ -15,6 +15,7 @@
       "extensions": [
         "ms-dotnettools.csharp",
         "ms-dotnettools.csdevkit",
+        "ms-dotnettools.vscode-dotnet-runtime",
         "GitHub.copilot-chat",
         "atman-dev.openspec-for-copilot"
       ]
